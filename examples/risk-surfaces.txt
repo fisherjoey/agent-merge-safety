@@ -1,0 +1,37 @@
+# .claude/risk-surfaces.txt
+#
+# Paths where a green CI run is not enough evidence to merge unattended.
+# One extended regex (grep -E) per line, matched case-insensitively against
+# each changed file path in the PR. Blank lines and lines starting with '#'
+# are ignored. When this file exists it REPLACES the hook's built-in default,
+# so list everything you care about, not only the additions.
+
+# Authorization and permission checks
+(^|/)auth(z|orization)?/
+permission
+(^|/)polic(y|ies)/
+
+# Multi-tenancy and row isolation
+tenan
+organization[-_]?(id|scoping)
+
+# Schema changes and irreversible data operations
+(^|/)migrations?/
+(^|/)db/seeds?/
+
+# Sessions, tokens, secrets
+session
+token
+secret
+credential
+
+# Money
+billing
+payment
+invoic
+payroll
+
+# The pipeline itself: CI config and the hooks that gate merges
+^\.github/workflows/
+^\.claude/
+^\.husky/

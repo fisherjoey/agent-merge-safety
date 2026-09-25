@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$HOME/.claude/hooks/risky-merge-guard.sh\"",
+            "timeout": 90
+          }
+        ]
+      }
+    ]
+  }
+}

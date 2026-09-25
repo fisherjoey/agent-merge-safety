@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+# Fake `gh` for the tests. Behaviour is driven by environment variables:
+#   FAKE_GH_PR        PR number returned for the current branch (empty = none)
+#   FAKE_GH_FILES     newline-separated changed files (empty = diff unavailable)
+#   FAKE_GH_BASE      base branch name
+#   FAKE_GH_REQUIRED  count of required status checks; "unprotected" = GitHub's
+#                     404 for an unprotected branch; "fail" = any other API error
+#   FAKE_GH_RULESET   count of ruleset required_status_checks rules (default 0)
+#   FAKE_GH_VIEW_JSON full JSON printed for `gh pr view N --repo R --json ...` (ledger tests)
+set -u
+args="$*"
+case "$args" in
+  "pr view --json number"*)
+    [ -n "${FAKE_GH_PR:-}" ] || exit 1
+    echo "$FAKE_GH_PR" ;;
+  "pr view "*"--repo "*)
+    printf '%s\n' "${FAKE_GH_VIEW_JSON:?}" ;;
+  "pr view "*"--json files"*)
+    [ -n "${FAKE_GH_FILES:-}" ] || exit 1
+    printf '%s\n' "$FAKE_GH_FILES" ;;
+  "pr view "*"--json baseRefName"*)
+    echo "${FAKE_GH_BASE:-main}" ;;
+  "api repos/{owner}/{repo}/rules/"*)
+    echo "${FAKE_GH_RULESET:-0}" ;;
+  "api "*)
+    case "${FAKE_GH_REQUIRED:-0}" in
+      fail) echo "HTTP 502: Bad Gateway" >&2; exit 1 ;;
+      unprotected) echo "gh: Branch not protected (HTTP 404)" >&2; exit 1 ;;
+    esac
+    echo "${FAKE_GH_REQUIRED:-0}" ;;
+  *) echo "fake gh: unhandled: $args" >&2; exit 2 ;;
+esac
